@@ -1,4 +1,9 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
+
+const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,30 +15,24 @@ export default async function handler(req, res) {
     }
 
     const userId = req.query.user || 'default';
+    const key = `habits:${userId}`;
 
     try {
         if (req.method === 'GET') {
-            const data = await kv.get(`habits:${userId}`);
+            const data = await redis.get(key);
             return res.status(200).json(data || {});
         }
 
         if (req.method === 'POST' || req.method === 'PUT') {
             const body = req.body;
-            const existing = (await kv.get(`habits:${userId}`)) || {};
+            const existing = (await redis.get(key)) || {};
             const updated = { ...existing, ...body };
-            await kv.set(`habits:${userId}`, updated);
+            await redis.set(key, updated);
             return res.status(200).json({ ok: true, data: updated });
         }
 
         if (req.method === 'DELETE') {
-            const { date } = req.query;
-            if (date) {
-                const existing = (await kv.get(`habits:${userId}`)) || {};
-                delete existing[date];
-                await kv.set(`habits:${userId}`, existing);
-            } else {
-                await kv.del(`habits:${userId}`);
-            }
+            await redis.del(key);
             return res.status(200).json({ ok: true });
         }
 
