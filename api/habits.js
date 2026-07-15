@@ -1,4 +1,12 @@
 import { Redis } from '@upstash/redis';
+import { Ratelimit } from '@upstash/ratelimit';
+import { validateBody, getUserId } from './lib.js';
+
+const ratelimit = new Ratelimit({
+    redis: Redis.fromEnv(),
+    limiter: Ratelimit.slidingWindow(30, '10 s'),
+    analytics: true,
+});
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,12 +17,21 @@ export default async function handler(req, res) {
         return res.status(200).end();
     }
 
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? 'anonymous';
+    const { success, reset } = await ratelimit.limit(ip);
+    if (!success) {
+        return res.status(429).json({
+            error: 'Too many requests',
+            retryAfter: Math.ceil((reset - Date.now()) / 1000),
+        });
+    }
+
     const redis = new Redis({
         url: process.env.UPSTASH_REDIS_REST_URL,
         token: process.env.UPSTASH_REDIS_REST_TOKEN,
     });
 
-    const userId = req.query.user || 'default';
+    const userId = getUserId(req);
     const key = `habits:${userId}`;
 
     try {
@@ -25,6 +42,9 @@ export default async function handler(req, res) {
 
         if (req.method === 'POST' || req.method === 'PUT') {
             const body = req.body;
+            if (!validateBody(body)) {
+                return res.status(400).json({ error: 'Invalid data format' });
+            }
             const existing = (await redis.get(key)) || {};
             const updated = { ...existing, ...body };
             await redis.set(key, updated);

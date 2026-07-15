@@ -2,7 +2,8 @@ node_modules/
 .vercel/
 .env
 .env.local
+.env*.local
 .DS_Store
 desktop.ini
-.vercel
-.env*.local
+test-results/
+playwright-report/

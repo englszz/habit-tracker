@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0a0f">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <title>Tracker de Hábitos</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,6 +24,20 @@
             --amber: #f59e0b;
             --accent: #818cf8;
             --accent-soft: rgba(129, 140, 248, 0.1);
+            --shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        [data-theme="light"] {
+            --bg: #f5f5f7;
+            --surface: #ffffff;
+            --surface-alt: #f0f0f4;
+            --border: #e0e0e6;
+            --text: #1a1a2e;
+            --text-muted: #6b6b80;
+            --green-glow: rgba(34, 197, 94, 0.1);
+            --green-dim: #16a34a;
+            --accent-soft: rgba(129, 140, 248, 0.08);
+            --shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
         body {
@@ -31,144 +48,252 @@
             display: flex;
             justify-content: center;
             padding: 40px 20px;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
-        .tracker {
-            width: 100%;
-            max-width: 480px;
-        }
+        .tracker { width: 100%; max-width: 520px; }
 
         .header {
-            text-align: center;
-            margin-bottom: 36px;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: 4px;
-        }
-
-        .header .date {
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-
-        .streak-section {
             display: flex;
-            justify-content: center;
-            gap: 24px;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 32px;
         }
 
-        .streak-card {
+        .header-left h1 {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 8px; }
+
+        .icon-btn {
+            width: 36px; height: 36px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text-muted);
+            transition: all 0.15s ease;
+        }
+        .icon-btn:hover { background: var(--surface-alt); color: var(--text); }
+
+        .user-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px 4px 4px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .user-btn:hover { background: var(--surface-alt); }
+        .user-btn img { width: 24px; height: 24px; border-radius: 50%; }
+        .user-btn span { font-size: 12px; color: var(--text-muted); }
+
+        .login-btn {
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+        .login-btn:hover { background: var(--surface-alt); color: var(--text); }
+
+        .date-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .date-nav .nav-arrow {
+            width: 32px; height: 32px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-muted);
+            transition: all 0.15s ease;
+        }
+        .date-nav .nav-arrow:hover { background: var(--surface-alt); color: var(--text); }
+        .date-nav .nav-arrow:disabled { opacity: 0.3; cursor: default; }
+        .date-nav .current-date {
+            font-size: 15px;
+            font-weight: 600;
+            min-width: 200px;
+            text-align: center;
+        }
+        .date-nav .today-badge {
+            font-size: 10px;
+            background: var(--accent-soft);
+            color: var(--accent);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 20px 28px;
+            padding: 16px;
             text-align: center;
-            min-width: 130px;
         }
-
-        .streak-card.highlight {
+        .stat-card.highlight {
             border-color: var(--green-dim);
             background: linear-gradient(135deg, var(--surface), rgba(34, 197, 94, 0.04));
         }
-
-        .streak-number {
-            font-size: 40px;
+        .stat-number {
+            font-size: 28px;
             font-weight: 800;
             line-height: 1;
             font-variant-numeric: tabular-nums;
         }
-
-        .streak-card.highlight .streak-number {
-            color: var(--green);
-        }
-
-        .streak-label {
-            font-size: 11px;
+        .stat-card.highlight .stat-number { color: var(--green); }
+        .stat-label {
+            font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: 1.2px;
+            letter-spacing: 1px;
             color: var(--text-muted);
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
-        .habits-card {
+        .card {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 14px;
-            padding: 24px;
-            margin-bottom: 28px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
         }
-
-        .habits-card h2 {
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .card-header h2 {
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 1.2px;
             color: var(--text-muted);
-            margin-bottom: 20px;
         }
+        .card-action {
+            font-size: 11px;
+            color: var(--accent);
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-weight: 500;
+        }
+        .card-action:hover { text-decoration: underline; }
 
         .habit {
             display: flex;
             align-items: center;
-            gap: 14px;
-            padding: 14px 16px;
+            gap: 12px;
+            padding: 12px 14px;
             border-radius: 10px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             cursor: pointer;
-            transition: background 0.15s ease;
+            transition: all 0.15s ease;
             user-select: none;
+            position: relative;
         }
-
-        .habit:hover {
-            background: var(--surface-alt);
-        }
-
-        .habit:last-child {
-            margin-bottom: 0;
-        }
+        .habit:hover { background: var(--surface-alt); }
+        .habit:last-child { margin-bottom: 0; }
 
         .habit-check {
-            width: 22px;
-            height: 22px;
+            width: 22px; height: 22px;
             border: 2px solid var(--border);
             border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             font-size: 13px;
             color: transparent;
         }
-
         .habit.done .habit-check {
             background: var(--green);
             border-color: var(--green);
             color: white;
             box-shadow: 0 0 12px var(--green-glow);
+            transform: scale(1.1);
+        }
+        .habit.done .habit-check.pop {
+            animation: checkPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes checkPop {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1.1); }
         }
 
         .habit-text {
-            font-size: 15px;
+            font-size: 14px;
             color: var(--text-muted);
             transition: all 0.2s ease;
             line-height: 1.4;
+            flex: 1;
         }
-
         .habit.done .habit-text {
             color: var(--text);
             text-decoration: line-through;
             text-decoration-color: var(--green-dim);
         }
+        .habit-emoji { font-size: 16px; flex-shrink: 0; }
 
-        .habit-emoji {
-            font-size: 18px;
-            flex-shrink: 0;
+        .habit-actions {
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
         }
+        .habit:hover .habit-actions { opacity: 1; }
+        .habit-action-btn {
+            width: 24px; height: 24px;
+            border: none;
+            background: var(--surface-alt);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s ease;
+        }
+        .habit-action-btn:hover { background: var(--border); color: var(--text); }
+        .habit-action-btn.delete:hover { background: rgba(239, 68, 68, 0.2); color: var(--red); }
 
         .all-done-banner {
             text-align: center;
@@ -179,10 +304,9 @@
             color: var(--green);
             font-size: 14px;
             font-weight: 600;
-            margin-top: 16px;
+            margin-top: 12px;
             display: none;
         }
-
         .all-done-banner.visible {
             display: block;
             animation: fadeIn 0.3s ease;
@@ -193,86 +317,153 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .week-card {
-            background: var(--surface);
+        .add-habit-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .add-habit-row input {
+            flex: 1;
+            padding: 8px 12px;
             border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 24px;
-            margin-bottom: 28px;
-        }
-
-        .week-card h2 {
+            background: var(--surface-alt);
+            border-radius: 8px;
             font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            color: var(--text-muted);
-            margin-bottom: 18px;
+            color: var(--text);
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s ease;
         }
+        .add-habit-row input:focus { border-color: var(--accent); }
+        .add-habit-row input::placeholder { color: var(--text-muted); opacity: 0.5; }
+        .add-habit-row button {
+            padding: 8px 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity 0.15s ease;
+        }
+        .add-habit-row button:hover { opacity: 0.9; }
 
-        .week-grid {
+        .week-bar {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
+            gap: 6px;
+            align-items: end;
         }
-
-        .day-col {
-            text-align: center;
-        }
-
-        .day-label {
-            font-size: 11px;
+        .bar-col { text-align: center; }
+        .bar-label {
+            font-size: 10px;
             color: var(--text-muted);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 500;
         }
+        .bar-wrapper {
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        .bar {
+            width: 100%;
+            max-width: 32px;
+            border-radius: 4px 4px 0 0;
+            transition: height 0.4s ease;
+            min-height: 2px;
+        }
+        .bar.complete { background: var(--green); }
+        .bar.partial { background: var(--amber); }
+        .bar.empty { background: var(--border); }
+        .bar-pct {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-variant-numeric: tabular-nums;
+        }
 
-        .day-dot {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            margin: 0 auto 6px;
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+        .month-day {
+            aspect-ratio: 1;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 11px;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-muted);
+            transition: all 0.15s ease;
+        }
+        .month-day.level-0 { background: var(--surface-alt); }
+        .month-day.level-1 { background: rgba(34, 197, 94, 0.15); color: var(--green); }
+        .month-day.level-2 { background: rgba(34, 197, 94, 0.3); color: var(--green); }
+        .month-day.level-3 { background: rgba(34, 197, 94, 0.5); color: white; }
+        .month-day.level-4 { background: var(--green); color: white; font-weight: 700; }
+        .month-day.today { outline: 2px solid var(--accent); outline-offset: -1px; }
+        .month-day.empty { background: transparent; }
+
+        .per-habit-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .ph-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: var(--surface-alt);
+            border-radius: 8px;
+        }
+        .ph-emoji { font-size: 14px; }
+        .ph-info { flex: 1; min-width: 0; }
+        .ph-name {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .ph-streak {
+            font-size: 13px;
             font-weight: 700;
             font-variant-numeric: tabular-nums;
-            transition: all 0.2s ease;
-            border: 2px solid transparent;
         }
 
-        .day-dot.complete {
-            background: var(--green);
-            color: white;
-            box-shadow: 0 0 10px var(--green-glow);
+        .export-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
         }
-
-        .day-dot.incomplete {
-            background: var(--surface-alt);
+        .export-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 8px;
+            font-size: 12px;
             color: var(--text-muted);
-            border-color: var(--border);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s ease;
         }
-
-        .day-dot.today {
-            border-color: var(--accent);
-        }
-
-        .day-dot.future {
-            background: transparent;
-            color: var(--text-muted);
-            opacity: 0.3;
-        }
-
-        .day-score {
-            font-size: 10px;
-            color: var(--text-muted);
-        }
+        .export-btn:hover { background: var(--surface-alt); color: var(--text); }
 
         .footer {
             text-align: center;
-            padding-top: 12px;
+            padding-top: 8px;
         }
-
         .reset-btn {
             background: none;
             border: 1px solid var(--border);
@@ -284,87 +475,193 @@
             transition: all 0.15s ease;
             font-family: inherit;
         }
-
-        .reset-btn:hover {
-            border-color: var(--red);
-            color: var(--red);
-        }
+        .reset-btn:hover { border-color: var(--red); color: var(--red); }
 
         .status-bar {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             font-size: 12px;
             color: var(--text-muted);
             opacity: 0;
             transition: opacity 0.3s ease;
+            height: 16px;
         }
-
-        .status-bar.visible {
-            opacity: 1;
-        }
+        .status-bar.visible { opacity: 1; }
 
         .loading {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 20px;
             color: var(--text-muted);
         }
-
-        .loading .spinner {
-            width: 24px;
-            height: 24px;
+        .spinner {
+            width: 24px; height: 24px;
             border: 2px solid var(--border);
             border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin: 0 auto 12px;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        #confettiCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 999;
         }
 
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            animation: fadeIn 0.15s ease;
+        }
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            width: 90%;
+            max-width: 360px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .modal h3 {
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+        .modal input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            background: var(--surface-alt);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text);
+            font-family: inherit;
+            outline: none;
+            margin-bottom: 16px;
+        }
+        .modal input:focus { border-color: var(--accent); }
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        .modal-actions button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-muted);
+            transition: all 0.15s ease;
+        }
+        .modal-actions button.primary {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        .modal-actions button:hover { opacity: 0.9; }
+
         @media (max-width: 400px) {
-            .streak-card { padding: 16px 20px; min-width: 110px; }
-            .streak-number { font-size: 32px; }
-            .habit { padding: 12px 10px; gap: 10px; }
-            .day-dot { width: 30px; height: 30px; font-size: 11px; }
+            body { padding: 20px 12px; }
+            .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .stat-number { font-size: 24px; }
+            .habit { padding: 10px 8px; gap: 8px; }
+            .per-habit-stats { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
+    <canvas id="confettiCanvas"></canvas>
     <div class="tracker">
         <div class="header">
-            <h1>Hábitos</h1>
-            <div class="date" id="todayDate"></div>
-        </div>
-
-        <div class="status-bar" id="statusBar">Guardado</div>
-
-        <div class="streak-section">
-            <div class="streak-card highlight">
-                <div class="streak-number" id="currentStreak">0</div>
-                <div class="streak-label">Racha actual</div>
+            <div class="header-left">
+                <h1>Hábitos</h1>
             </div>
-            <div class="streak-card">
-                <div class="streak-number" id="bestStreak">0</div>
-                <div class="streak-label">Mejor racha</div>
+            <div class="header-right">
+                <button class="icon-btn" id="themeToggle" title="Cambiar tema">☀️</button>
+                <div id="authArea"></div>
             </div>
         </div>
 
-        <div class="habits-card" id="habitsCard">
-            <h2>Hoy</h2>
+        <div class="status-bar" id="statusBar"></div>
+
+        <div class="date-nav">
+            <button class="nav-arrow" id="prevDay">◀</button>
+            <div>
+                <span class="current-date" id="currentDate"></span>
+                <span class="today-badge" id="todayBadge" style="display:none">Hoy</span>
+            </div>
+            <button class="nav-arrow" id="nextDay">▶</button>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card highlight">
+                <div class="stat-number" id="currentStreak">0</div>
+                <div class="stat-label">Racha</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="bestStreak">0</div>
+                <div class="stat-label">Mejor</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completionPct">0%</div>
+                <div class="stat-label">30 días</div>
+            </div>
+        </div>
+
+        <div class="card" id="habitsCard">
+            <div class="card-header">
+                <h2 id="habitsTitle">Hoy</h2>
+            </div>
             <div id="habitsList">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    Cargando...
-                </div>
+                <div class="loading"><div class="spinner"></div>Cargando...</div>
             </div>
             <div class="all-done-banner" id="allDoneBanner">Todos los hábitos completados</div>
+            <div class="add-habit-row" id="addHabitRow">
+                <input type="text" id="addHabitInput" placeholder="Nuevo hábito..." maxlength="50">
+                <button id="addHabitBtn">Agregar</button>
+            </div>
         </div>
 
-        <div class="week-card">
-            <h2>Últimos 7 días</h2>
-            <div class="week-grid" id="weekGrid"></div>
+        <div class="card">
+            <div class="card-header">
+                <h2>Semana</h2>
+            </div>
+            <div class="week-bar" id="weekBar"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Últimos 30 días</h2>
+            </div>
+            <div class="month-grid" id="monthGrid"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Racha por hábito</h2>
+            </div>
+            <div class="per-habit-stats" id="perHabitStats"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Datos</h2>
+            </div>
+            <div class="export-row">
+                <button class="export-btn" onclick="exportData()">Exportar JSON</button>
+                <button class="export-btn" onclick="document.getElementById('importFile').click()">Importar JSON</button>
+                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+            </div>
         </div>
 
         <div class="footer">
@@ -373,20 +670,24 @@
     </div>
 
     <script>
-        const HABITS = [
-            { id: 'sleep', emoji: '\u{1F319}', label: 'Dormir antes de la hora meta' },
-            { id: 'rope', emoji: '\u{1FA86}', label: 'Hacer cuerda al levantarme' },
-            { id: 'nophone', emoji: '\u{1F4F5}', label: 'No usar el celular al despertar' },
-            { id: 'food', emoji: '\u{1F957}', label: 'Seguir el plan de comida del día' },
-        ];
-
         const API_BASE = window.location.origin + '/api/habits';
         let allData = {};
+        let habits = [];
+        let selectedDate = new Date();
         let saveTimeout = null;
+        let currentUser = null;
 
-        function todayKey() {
-            const d = new Date();
+        function dateKey(d) {
             return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        }
+        function todayKey() { return dateKey(new Date()); }
+        function isToday(d) { return dateKey(d) === todayKey(); }
+
+        function isAllDone(dayData) {
+            return habits.length > 0 && habits.every(h => dayData[h.id] === true);
+        }
+        function doneCount(dayData) {
+            return habits.filter(h => dayData[h.id] === true).length;
         }
 
         function showStatus(msg) {
@@ -396,29 +697,49 @@
             setTimeout(() => bar.classList.remove('visible'), 1500);
         }
 
+        async function fetchSession() {
+            try {
+                const res = await fetch('/api/auth/session');
+                const data = await res.json();
+                if (data.logged_in) {
+                    currentUser = data.user;
+                }
+            } catch {}
+        }
+
         async function fetchData() {
             try {
                 const res = await fetch(API_BASE);
                 if (res.ok) {
-                    allData = await res.json();
+                    const data = await res.json();
+                    allData = data;
+                    habits = data._habits || [
+                        { id: 'sleep', emoji: '\u{1F319}', label: 'Dormir antes de la hora meta' },
+                        { id: 'rope', emoji: '\u{1FA86}', label: 'Hacer cuerda al levantarme' },
+                        { id: 'nophone', emoji: '\u{1F4F5}', label: 'No usar el celular al despertar' },
+                        { id: 'food', emoji: '\u{1F957}', label: 'Seguir el plan de comida del día' },
+                    ];
                 }
             } catch (e) {
-                console.warn('API no disponible, usando modo offline');
                 allData = JSON.parse(localStorage.getItem('habits-offline') || '{}');
+                habits = allData._habits || [
+                    { id: 'sleep', emoji: '\u{1F319}', label: 'Dormir antes de la hora meta' },
+                    { id: 'rope', emoji: '\u{1FA86}', label: 'Hacer cuerda al levantarme' },
+                    { id: 'nophone', emoji: '\u{1F4F5}', label: 'No usar el celular al despertar' },
+                    { id: 'food', emoji: '\u{1F957}', label: 'Seguir el plan de comida del día' },
+                ];
             }
         }
 
         async function persistData() {
+            allData._habits = habits;
             try {
                 const res = await fetch(API_BASE, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(allData)
                 });
-                if (res.ok) {
-                    showStatus('Guardado en servidor');
-                    return;
-                }
+                if (res.ok) { showStatus('Guardado'); return; }
             } catch (e) {}
             localStorage.setItem('habits-offline', JSON.stringify(allData));
             showStatus('Guardado localmente');
@@ -429,26 +750,13 @@
             saveTimeout = setTimeout(() => persistData(), 300);
         }
 
-        function isAllDone(dayData) {
-            return HABITS.every(h => dayData[h.id] === true);
-        }
-
-        function doneCount(dayData) {
-            return HABITS.filter(h => dayData[h.id] === true).length;
-        }
-
         function computeStreaks() {
-            let current = 0;
-            let best = 0;
-            let temp = 0;
+            let current = 0, best = 0, temp = 0;
             const today = new Date();
-
             for (let i = 0; i < 365; i++) {
                 const d = new Date(today);
                 d.setDate(d.getDate() - i);
-                const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-                const dayData = allData[key] || {};
-
+                const dayData = allData[dateKey(d)] || {};
                 if (isAllDone(dayData)) {
                     temp++;
                     if (i === current) current = temp;
@@ -462,99 +770,381 @@
             return { current, best };
         }
 
+        function computeCompletionPct() {
+            let completed = 0, total = 0;
+            const today = new Date();
+            for (let i = 0; i < 30; i++) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                const dayData = allData[dateKey(d)] || {};
+                if (doneCount(dayData) > 0 || i === 0) {
+                    total++;
+                    if (isAllDone(dayData)) completed++;
+                }
+            }
+            return total === 0 ? 0 : Math.round((completed / total) * 100);
+        }
+
+        function computePerHabitStreaks() {
+            return habits.map(h => {
+                let streak = 0;
+                const today = new Date();
+                for (let i = 0; i < 365; i++) {
+                    const d = new Date(today);
+                    d.setDate(d.getDate() - i);
+                    const dayData = allData[dateKey(d)] || {};
+                    if (dayData[h.id] === true) streak++;
+                    else break;
+                }
+                return { ...h, streak };
+            });
+        }
+
         function renderDate() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('todayDate').textContent = now.toLocaleDateString('es-ES', options);
+            const opts = { weekday: 'long', day: 'numeric', month: 'long' };
+            document.getElementById('currentDate').textContent =
+                selectedDate.toLocaleDateString('es-ES', opts);
+            const badge = document.getElementById('todayBadge');
+            badge.style.display = isToday(selectedDate) ? 'inline-block' : 'none';
+            const title = isToday(selectedDate) ? 'Hoy' :
+                selectedDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+            document.getElementById('habitsTitle').textContent = title;
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const sel = new Date(selectedDate);
+            sel.setHours(0,0,0,0);
+            document.getElementById('nextDay').disabled = sel >= today;
         }
 
         function renderHabits() {
-            const today = todayKey();
-            const dayData = allData[today] || {};
+            const dk = dateKey(selectedDate);
+            const dayData = allData[dk] || {};
             const container = document.getElementById('habitsList');
 
-            container.innerHTML = HABITS.map(h => {
+            container.innerHTML = habits.map(h => {
                 const done = dayData[h.id] === true;
                 return `<div class="habit ${done ? 'done' : ''}" data-habit="${h.id}">
                     <span class="habit-emoji">${h.emoji}</span>
                     <div class="habit-check">${done ? '\u2713' : ''}</div>
                     <span class="habit-text">${h.label}</span>
+                    <div class="habit-actions">
+                        <button class="habit-action-btn edit" onclick="event.stopPropagation(); editHabit('${h.id}')" title="Editar">✎</button>
+                        <button class="habit-action-btn delete" onclick="event.stopPropagation(); deleteHabit('${h.id}')" title="Eliminar">✕</button>
+                    </div>
                 </div>`;
             }).join('');
 
             container.querySelectorAll('.habit').forEach(el => {
                 el.addEventListener('click', () => {
                     const habitId = el.dataset.habit;
-                    const today = todayKey();
-                    if (!allData[today]) allData[today] = {};
-                    allData[today][habitId] = !allData[today][habitId];
-                    renderHabits();
-                    renderWeek();
-                    renderStreaks();
+                    const dk = dateKey(selectedDate);
+                    if (!allData[dk]) allData[dk] = {};
+                    allData[dk][habitId] = !allData[dk][habitId];
+                    const checkEl = el.querySelector('.habit-check');
+                    if (allData[dk][habitId]) {
+                        checkEl.classList.add('pop');
+                        setTimeout(() => checkEl.classList.remove('pop'), 300);
+                    }
+                    renderAll();
                     scheduleSave();
                 });
             });
 
             const banner = document.getElementById('allDoneBanner');
-            banner.classList.toggle('visible', isAllDone(dayData));
+            const wasVisible = banner.classList.contains('visible');
+            banner.classList.toggle('visible', isAllDone(dayData) && isToday(selectedDate));
+            if (!wasVisible && banner.classList.contains('visible')) {
+                fireConfetti();
+            }
         }
 
-        function renderStreaks() {
-            const streaks = computeStreaks();
-            document.getElementById('currentStreak').textContent = streaks.current;
-            document.getElementById('bestStreak').textContent = streaks.best;
+        function renderStats() {
+            const s = computeStreaks();
+            document.getElementById('currentStreak').textContent = s.current;
+            document.getElementById('bestStreak').textContent = s.best;
+            document.getElementById('completionPct').textContent = computeCompletionPct() + '%';
         }
 
         function renderWeek() {
             const today = new Date();
-            const grid = document.getElementById('weekGrid');
+            const grid = document.getElementById('weekBar');
+            const dayNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
             let html = '';
 
             for (let i = 6; i >= 0; i--) {
                 const d = new Date(today);
                 d.setDate(d.getDate() - i);
-                const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-                const dayData = allData[key] || {};
-                const allDone = isAllDone(dayData);
+                const dk = dateKey(d);
+                const dayData = allData[dk] || {};
                 const count = doneCount(dayData);
-                const isToday = i === 0;
-                const dayNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+                const pct = habits.length > 0 ? Math.round((count / habits.length) * 100) : 0;
+                const barHeight = Math.max(2, (pct / 100) * 100);
+                let barClass = 'empty';
+                if (pct === 100) barClass = 'complete';
+                else if (pct > 0) barClass = 'partial';
 
-                let cls = 'incomplete';
-                if (allDone) cls = 'complete';
-                if (isToday) cls += ' today';
-
-                html += `<div class="day-col">
-                    <div class="day-label">${dayNames[d.getDay()]}</div>
-                    <div class="day-dot ${cls}">${d.getDate()}</div>
-                    <div class="day-score">${count}/4</div>
+                html += `<div class="bar-col">
+                    <div class="bar-label">${dayNames[d.getDay()]}</div>
+                    <div class="bar-wrapper">
+                        <div class="bar ${barClass}" style="height:${barHeight}px"></div>
+                    </div>
+                    <div class="bar-pct">${pct}%</div>
                 </div>`;
             }
             grid.innerHTML = html;
         }
 
-        async function resetData() {
-            if (!confirm('¿Estás seguro? Se borrarán todos los datos de hábitos.')) return;
-            allData = {};
-            try {
-                await fetch(API_BASE, { method: 'DELETE' });
-            } catch (e) {}
-            localStorage.removeItem('habits-offline');
+        function renderMonth() {
+            const today = new Date();
+            const grid = document.getElementById('monthGrid');
+            let html = '';
+
+            for (let i = 29; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                const dk = dateKey(d);
+                const dayData = allData[dk] || {};
+                const count = doneCount(dayData);
+                const total = habits.length || 1;
+                let level = 0;
+                if (count === total && total > 0) level = 4;
+                else if (count >= total * 0.75) level = 3;
+                else if (count >= total * 0.5) level = 2;
+                else if (count > 0) level = 1;
+
+                const todayClass = isToday(d) ? ' today' : '';
+                html += `<div class="month-day level-${level}${todayClass}" title="${dk}: ${count}/${total}">${d.getDate()}</div>`;
+            }
+            grid.innerHTML = html;
+        }
+
+        function renderPerHabit() {
+            const stats = computePerHabitStreaks();
+            const container = document.getElementById('perHabitStats');
+            container.innerHTML = stats.map(h => `
+                <div class="ph-stat">
+                    <span class="ph-emoji">${h.emoji}</span>
+                    <div class="ph-info">
+                        <div class="ph-name">${h.label}</div>
+                    </div>
+                    <div class="ph-streak">${h.streak}d</div>
+                </div>
+            `).join('');
+        }
+
+        function renderAuth() {
+            const area = document.getElementById('authArea');
+            if (currentUser) {
+                area.innerHTML = `<div class="user-btn" onclick="logout()">
+                    <img src="${currentUser.avatar}" alt="${currentUser.login}">
+                    <span>${currentUser.login}</span>
+                </div>`;
+            } else {
+                area.innerHTML = `<a href="/api/auth/github" class="login-btn">Iniciar sesión</a>`;
+            }
+        }
+
+        function renderAll() {
+            renderDate();
             renderHabits();
+            renderStats();
             renderWeek();
-            renderStreaks();
+            renderMonth();
+            renderPerHabit();
+        }
+
+        function fireConfetti() {
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const particles = [];
+            const colors = ['#22c55e', '#818cf8', '#f59e0b', '#ef4444', '#06b6d4'];
+
+            for (let i = 0; i < 60; i++) {
+                particles.push({
+                    x: canvas.width / 2 + (Math.random() - 0.5) * 200,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: -Math.random() * 12 - 4,
+                    size: Math.random() * 6 + 3,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rotation: Math.random() * 360,
+                    rotSpeed: (Math.random() - 0.5) * 10,
+                    life: 1,
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+                for (const p of particles) {
+                    if (p.life <= 0) continue;
+                    alive = true;
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.3;
+                    p.rotation += p.rotSpeed;
+                    p.life -= 0.015;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rotation * Math.PI / 180);
+                    ctx.globalAlpha = p.life;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+                    ctx.restore();
+                }
+                if (alive) requestAnimationFrame(animate);
+                else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            animate();
+        }
+
+        async function logout() {
+            await fetch('/api/auth/session', { method: 'DELETE' });
+            currentUser = null;
+            renderAuth();
+            showStatus('Sesión cerrada');
+        }
+
+        function addHabit() {
+            const input = document.getElementById('addHabitInput');
+            const label = input.value.trim();
+            if (!label) return;
+            const id = 'h_' + Date.now();
+            const emojis = ['⭐','🔥','💪','📚','🎯','💧','🧘','🏃','✍️','🎵','🧹','💊'];
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+            habits.push({ id, emoji, label });
+            input.value = '';
+            allData._habits = habits;
+            renderAll();
+            scheduleSave();
+        }
+
+        function editHabit(id) {
+            const habit = habits.find(h => h.id === id);
+            if (!habit) return;
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `<div class="modal">
+                <h3>Editar hábito</h3>
+                <input type="text" id="editEmoji" value="${habit.emoji}" maxlength="4" style="width:60px;text-align:center;font-size:24px">
+                <input type="text" id="editLabel" value="${habit.label}" maxlength="50">
+                <div class="modal-actions">
+                    <button onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+                    <button class="primary" onclick="saveEdit('${id}')">Guardar</button>
+                </div>
+            </div>`;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+            document.getElementById('editLabel').focus();
+        }
+
+        function saveEdit(id) {
+            const habit = habits.find(h => h.id === id);
+            if (!habit) return;
+            const emoji = document.getElementById('editEmoji').value.trim() || habit.emoji;
+            const label = document.getElementById('editLabel').value.trim() || habit.label;
+            habit.emoji = emoji;
+            habit.label = label;
+            document.querySelector('.modal-overlay')?.remove();
+            allData._habits = habits;
+            renderAll();
+            scheduleSave();
+        }
+
+        function deleteHabit(id) {
+            if (!confirm('¿Eliminar este hábito?')) return;
+            habits = habits.filter(h => h.id !== id);
+            allData._habits = habits;
+            renderAll();
+            scheduleSave();
+        }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `habits-backup-${todayKey()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showStatus('Datos exportados');
+        }
+
+        async function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+                allData = data;
+                habits = data._habits || habits;
+                await persistData();
+                renderAll();
+                showStatus('Datos importados');
+            } catch (e) {
+                showStatus('Error al importar');
+            }
+            event.target.value = '';
+        }
+
+        async function resetData() {
+            if (!confirm('¿Estás seguro? Se borrarán todos los datos.')) return;
+            allData = {};
+            try { await fetch(API_BASE, { method: 'DELETE' }); } catch (e) {}
+            localStorage.removeItem('habits-offline');
+            renderAll();
             showStatus('Datos borrados');
         }
 
+        // Theme
+        function initTheme() {
+            const saved = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', saved);
+            document.getElementById('themeToggle').textContent = saved === 'dark' ? '☀️' : '🌙';
+        }
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('theme', next);
+        }
+
+        // Navigation
+        document.getElementById('prevDay').addEventListener('click', () => {
+            selectedDate.setDate(selectedDate.getDate() - 1);
+            renderAll();
+        });
+        document.getElementById('nextDay').addEventListener('click', () => {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            if (selectedDate < tomorrow) {
+                selectedDate.setDate(selectedDate.getDate() + 1);
+                renderAll();
+            }
+        });
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+        document.getElementById('addHabitBtn').addEventListener('click', addHabit);
+        document.getElementById('addHabitInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') addHabit();
+        });
+
         async function init() {
-            renderDate();
+            initTheme();
+            await fetchSession();
+            renderAuth();
             await fetchData();
-            renderHabits();
-            renderWeek();
-            renderStreaks();
+            renderAll();
         }
 
         init();
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
     </script>
 </body>
 </html>
